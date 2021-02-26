@@ -911,6 +911,11 @@ func (z *User) DecodeMsg(dc *msgp.Reader) (err error) {
 		err = msgp.WrapError(err, "Position")
 		return
 	}
+	z.Introduce, err = dc.ReadString()
+	if err != nil {
+		err = msgp.WrapError(err, "Introduce")
+		return
+	}
 	z.Roles, err = dc.ReadString()
 	if err != nil {
 		err = msgp.WrapError(err, "Roles")
@@ -1155,6 +1160,11 @@ func (z *User) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "Position")
 		return
 	}
+	err = en.WriteString(z.Introduce)
+	if err != nil {
+		err = msgp.WrapError(err, "Introduce")
+		return
+	}
 	err = en.WriteString(z.Roles)
 	if err != nil {
 		err = msgp.WrapError(err, "Roles")
@@ -1302,6 +1312,7 @@ func (z *User) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.AppendString(o, z.FirstName)
 	o = msgp.AppendString(o, z.LastName)
 	o = msgp.AppendString(o, z.Position)
+	o = msgp.AppendString(o, z.Introduce)
 	o = msgp.AppendString(o, z.Roles)
 	o = msgp.AppendBool(o, z.AllowMarketing)
 	o = msgp.AppendMapHeader(o, uint32(len(z.Props)))
@@ -1425,6 +1436,11 @@ func (z *User) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	z.Position, bts, err = msgp.ReadStringBytes(bts)
 	if err != nil {
 		err = msgp.WrapError(err, "Position")
+		return
+	}
+	z.Introduce, bts, err = msgp.ReadStringBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err, "Introduce")
 		return
 	}
 	z.Roles, bts, err = msgp.ReadStringBytes(bts)
@@ -1596,7 +1612,7 @@ func (z *User) Msgsize() (s int) {
 	} else {
 		s += msgp.StringPrefixSize + len(*z.AuthData)
 	}
-	s += msgp.StringPrefixSize + len(z.AuthService) + msgp.StringPrefixSize + len(z.Email) + msgp.BoolSize + msgp.StringPrefixSize + len(z.Nickname) + msgp.StringPrefixSize + len(z.FirstName) + msgp.StringPrefixSize + len(z.LastName) + msgp.StringPrefixSize + len(z.Position) + msgp.StringPrefixSize + len(z.Roles) + msgp.BoolSize + msgp.MapHeaderSize
+	s += msgp.StringPrefixSize + len(z.AuthService) + msgp.StringPrefixSize + len(z.Email) + msgp.BoolSize + msgp.StringPrefixSize + len(z.Nickname) + msgp.StringPrefixSize + len(z.FirstName) + msgp.StringPrefixSize + len(z.LastName) + msgp.StringPrefixSize + len(z.Position) + msgp.StringPrefixSize + len(z.Introduce) + msgp.StringPrefixSize + len(z.Roles) + msgp.BoolSize + msgp.MapHeaderSize
 	if z.Props != nil {
 		for za0001, za0002 := range z.Props {
 			_ = za0002
