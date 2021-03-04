@@ -676,6 +676,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			PERMISSION_VIEW_MEMBERS.Id,
+			PERMISSION_VIEW_TEAM.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
