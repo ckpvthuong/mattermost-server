@@ -554,6 +554,29 @@ func (_m *TeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMember
 	return r0, r1
 }
 
+// GetTeamsAdministeredByUserId provides a mock function with given fields: userId
+func (_m *TeamStore) GetTeamsAdministeredByUserId(userId string) ([]*model.Team, error) {
+	ret := _m.Called(userId)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(string) []*model.Team); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTeamsByScheme provides a mock function with given fields: schemeId, offset, limit
 func (_m *TeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, error) {
 	ret := _m.Called(schemeId, offset, limit)

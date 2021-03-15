@@ -7692,6 +7692,26 @@ func (s *RetryLayerTeamStore) GetTeamMembersForExport(userId string) ([]*model.T
 
 }
 
+func (s *RetryLayerTeamStore) GetTeamsAdministeredByUserId(userId string) ([]*model.Team, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetTeamsAdministeredByUserId(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, error) {
 
 	tries := 0

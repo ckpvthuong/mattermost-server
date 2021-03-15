@@ -608,6 +608,26 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	return teams, nil
 }
 
+// GetTeamsAdministedByUserId return all teams that administered by an user.
+func (s SqlTeamStore) GetTeamsAdministeredByUserId(userId string) ([]*model.Team, error) {
+	var teams []*model.Team
+	query, args, err := s.teamsQuery.
+		Join("TeamMembers ON TeamMembers.TeamId = Teams.Id").
+		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0, "Teams.DeleteAt": 0,
+			"TeamMembers.SchemeAdmin": true,
+		}).ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+
+	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find Teams")
+	}
+
+	return teams, nil
+}
+
 // GetAllPrivateTeamListing returns all private teams.
 func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": false}).

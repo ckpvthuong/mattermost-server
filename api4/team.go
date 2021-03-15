@@ -38,6 +38,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchTeams)).Methods("POST")
 	api.BaseRoutes.TeamsForUser.Handle("", api.ApiSessionRequired(getTeamsForUser)).Methods("GET")
 	api.BaseRoutes.TeamsForUser.Handle("/unread", api.ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
+	api.BaseRoutes.TeamsForUser.Handle("/admin", api.ApiSessionRequired(getTeamsAdminForUser)).Methods("GET")
 
 	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(getTeam)).Methods("GET")
 	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(updateTeam)).Methods("PUT")
@@ -428,6 +429,22 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.TeamsUnreadToJson(unreadTeamsList)))
+}
+
+func getTeamsAdminForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	teams, err := c.App.GetTeamsAdminForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.App.SanitizeTeams(*c.App.Session(), teams)
+	w.Write([]byte(model.TeamListToJson(teams)))
 }
 
 func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {

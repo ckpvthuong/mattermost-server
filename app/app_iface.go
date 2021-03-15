@@ -681,6 +681,7 @@ type AppIface interface {
 	GetTeamMembersForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 	GetTeamStats(teamId string, restrictions *model.ViewUsersRestrictions) (*model.TeamStats, *model.AppError)
 	GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.AppError)
+	GetTeamsAdminForUser(userId string) ([]*model.Team, *model.AppError)
 	GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]*model.Team, *model.AppError)
 	GetTeamsForSchemePage(scheme *model.Scheme, page int, perPage int) ([]*model.Team, *model.AppError)
 	GetTeamsForUser(userId string) ([]*model.Team, *model.AppError)
