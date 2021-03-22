@@ -1061,11 +1061,16 @@ type SqlSettings struct {
 	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	QueryTimeout                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	DisableDatabaseSearch       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
+	UseCockroach                *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	if s.DriverName == nil {
 		s.DriverName = NewString(DATABASE_DRIVER_POSTGRES)
+	}
+
+	if s.UseCockroach == nil {
+		s.UseCockroach = NewBool(false)
 	}
 
 	if s.DataSource == nil {
