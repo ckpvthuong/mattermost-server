@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -474,12 +475,20 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 
 func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool {
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		// count, err := ss.GetMaster().SelectInt(
+		// 	`SELECT COUNT(0)
+		// 	FROM   pg_attribute
+		// 	WHERE  attrelid = $1::regclass
+		// 	AND    attname = $2
+		// 	AND    NOT attisdropped`,
+		// 	strings.ToLower(tableName),
+		// 	strings.ToLower(columnName),
+		// )
+
 		count, err := ss.GetMaster().SelectInt(
-			`SELECT COUNT(0)
-			FROM   pg_attribute
-			WHERE  attrelid = $1::regclass
-			AND    attname = $2
-			AND    NOT attisdropped`,
+			`SELECT count(0) 
+			FROM information_schema.columns 
+			WHERE table_name=$1 and column_name=$2`,
 			strings.ToLower(tableName),
 			strings.ToLower(columnName),
 		)
@@ -488,7 +497,7 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 			if err.Error() == "pq: relation \""+strings.ToLower(tableName)+"\" does not exist" {
 				return false
 			}
-
+			mlog.Info(strings.ToLower(tableName + " " + columnName))
 			mlog.Critical("Failed to check if column exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_DOES_COLUMN_EXISTS_POSTGRES)
@@ -934,21 +943,30 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 		}
 
 		query := ""
-		if indexType == INDEX_TYPE_FULL_TEXT {
-			if len(columnNames) != 1 {
-				mlog.Critical("Unable to create multi column full text index")
-				os.Exit(EXIT_CREATE_INDEX_POSTGRES)
+		// if indexType == INDEX_TYPE_FULL_TEXT {
+		// 	if len(columnNames) != 1 {
+		// 		mlog.Critical("Unable to create multi column full text index")
+		// 		os.Exit(EXIT_CREATE_INDEX_POSTGRES)
+		// 	}
+		// 	columnName := columnNames[0]
+		// 	postgresColumnNames := convertMySQLFullTextColumnsToPostgres(columnName)
+		// 	query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + postgresColumnNames + "))"
+		// } else {
+		// remove function in column name. Ex: lower(name) => name
+		// cockroad don't support
+		for i, columnName := range columnNames {
+			if strings.Contains(columnName, "(") {
+				mlog.Info("COLUMN NAME", mlog.String("column", columnName))
+				columnNames[i] = regexp.MustCompile(`\((.*?)\)`).FindStringSubmatch(columnName)[1]
 			}
-			columnName := columnNames[0]
-			postgresColumnNames := convertMySQLFullTextColumnsToPostgres(columnName)
-			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + postgresColumnNames + "))"
-		} else {
-			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")"
 		}
+
+		query = "CREATE " + uniqueStr + "INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ",") + ")"
+		//}
 
 		_, err := ss.GetMaster().ExecNoTimeout(query)
 		if err != nil {
-			mlog.Critical("Failed to create index", mlog.Err(errExists), mlog.Err(err))
+			mlog.Critical("Failed to create index"+query, mlog.Err(errExists), mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
 		}

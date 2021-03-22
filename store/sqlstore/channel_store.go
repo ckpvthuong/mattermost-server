@@ -2068,26 +2068,26 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 
 	query := `SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE Id IN ` + keys
 	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `WITH c AS ( ` + query + `),
-	updated AS (
-	UPDATE
-		ChannelMembers cm
-	SET
-		MentionCount = 0,
-		MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
-		LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
-		LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
-	FROM c
-		WHERE cm.UserId = :UserId
-		AND c.Id=cm.ChannelId
-)
-	SELECT Id, LastPostAt FROM c`
-	}
+	// 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	// 		query = `WITH c AS ( ` + query + `),
+	// 	updated AS (
+	// 	UPDATE
+	// 		ChannelMembers cm
+	// 	SET
+	// 		MentionCount = 0,
+	// 		MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
+	// 		LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
+	// 		LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
+	// 	FROM c
+	// 		WHERE cm.UserId = :UserId
+	// 		AND c.Id=cm.ChannelId
+	// )
+	// 	SELECT Id, LastPostAt FROM c`
+	// 	}
 
 	_, err := s.GetMaster().Select(&lastPostAtTimes, query, props)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with userId=%s and channelId in %v", userId, channelIds)
+		return nil, errors.Wrapf(err, query+"failed to find ChannelMembers data with userId=%s and channelId in %v", userId, channelIds)
 	}
 
 	if len(lastPostAtTimes) == 0 {
@@ -2095,15 +2095,15 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 	}
 
 	times := map[string]int64{}
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		for _, t := range lastPostAtTimes {
-			times[t.Id] = t.LastPostAt
-		}
-		if updateThreads {
-			s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, true)
-		}
-		return times, nil
-	}
+	// if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	// 	for _, t := range lastPostAtTimes {
+	// 		times[t.Id] = t.LastPostAt
+	// 	}
+	// 	if updateThreads {
+	// 		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, true)
+	// 	}
+	// 	return times, nil
+	// }
 
 	msgCountQuery := ""
 	lastViewedQuery := ""
