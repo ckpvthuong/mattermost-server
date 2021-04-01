@@ -240,6 +240,7 @@ func (a *App) importChannel(data *ChannelImportData, dryRun bool) *model.AppErro
 	channel.Name = *data.Name
 	channel.DisplayName = *data.DisplayName
 	channel.Type = *data.Type
+	channel.ReadOnly = data.ReadOnly
 
 	if data.Header != nil {
 		channel.Header = *data.Header

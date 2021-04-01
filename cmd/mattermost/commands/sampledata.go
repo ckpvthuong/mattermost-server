@@ -609,6 +609,7 @@ func createChannel(idx int, teamName string) app.LineImportData {
 	name := fmt.Sprintf("%s-%d", fake.Word(), idx)
 	header := fake.Paragraph()
 	purpose := fake.Paragraph()
+	readonly := rand.Intn(2) == 0
 
 	if len(purpose) > 250 {
 		purpose = purpose[0:250]
@@ -626,6 +627,7 @@ func createChannel(idx int, teamName string) app.LineImportData {
 		Type:        &channelType,
 		Header:      &header,
 		Purpose:     &purpose,
+		ReadOnly:    readonly,
 	}
 	return app.LineImportData{
 		Type:    "channel",

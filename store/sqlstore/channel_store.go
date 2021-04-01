@@ -332,6 +332,7 @@ type publicChannel struct {
 	Name        string `json:"name"`
 	Header      string `json:"header"`
 	Purpose     string `json:"purpose"`
+	ReadOnly    bool   `json:"read_only"`
 }
 
 var allChannelMembersForUserCache = cache.NewLRU(&cache.LRUOptions{
@@ -440,9 +441,9 @@ func (s SqlChannelStore) createIndexesIfNotExists() {
 func (s SqlChannelStore) MigratePublicChannels() error {
 	if _, err := s.GetMaster().Exec(`
 		INSERT INTO PublicChannels
-		    (Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+		    (Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose, ReadOnly)
 		SELECT
-		    c.Id, c.DeleteAt, c.TeamId, c.DisplayName, c.Name, c.Header, c.Purpose
+		    c.Id, c.DeleteAt, c.TeamId, c.DisplayName, c.Name, c.Header, c.Purpose, c.ReadOnly
 		FROM
 		    Channels c
 		LEFT JOIN
@@ -466,6 +467,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 		Name:        channel.Name,
 		Header:      channel.Header,
 		Purpose:     channel.Purpose,
+		ReadOnly:    channel.ReadOnly,
 	}
 
 	if channel.Type != model.CHANNEL_OPEN {
@@ -482,9 +484,9 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 		// the row already exists. (Postgres 9.4 doesn't support native upsert.)
 		if _, err := transaction.Exec(`
 			INSERT INTO
-			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose, ReadOnly)
 			VALUES
-			    (:Id, :DeleteAt, :TeamId, :DisplayName, :Name, :Header, :Purpose)
+			    (:Id, :DeleteAt, :TeamId, :DisplayName, :Name, :Header, :Purpose, :ReadOnly)
 			ON DUPLICATE KEY UPDATE
 			    DeleteAt = :DeleteAt,
 			    TeamId = :TeamId,
@@ -492,6 +494,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 			    Name = :Name,
 			    Header = :Header,
 			    Purpose = :Purpose;
+					ReadOnly = :ReadOnly
 		`, map[string]interface{}{
 			"Id":          publicChannel.Id,
 			"DeleteAt":    publicChannel.DeleteAt,
@@ -500,6 +503,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 			"Name":        publicChannel.Name,
 			"Header":      publicChannel.Header,
 			"Purpose":     publicChannel.Purpose,
+			"ReadOnly":    publicChannel.ReadOnly,
 		}); err != nil {
 			return errors.Wrap(err, "failed to insert public channel")
 		}

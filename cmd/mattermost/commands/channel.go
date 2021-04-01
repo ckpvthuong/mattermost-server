@@ -207,7 +207,7 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 		Header:      header,
 		Purpose:     purpose,
 		Type:        channelType,
-		CreatorId:   "",
+		CreatorId:   "djt",
 	}
 
 	createdChannel, errCreatedChannel := a.CreateChannel(channel, false)

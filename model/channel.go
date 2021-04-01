@@ -51,6 +51,7 @@ type Channel struct {
 	SchemeId         *string                `json:"scheme_id"`
 	Props            map[string]interface{} `json:"props" db:"-"`
 	GroupConstrained *bool                  `json:"group_constrained"`
+	ReadOnly         bool                   `json:"read_only"`
 }
 
 type ChannelWithTeamData struct {
@@ -71,6 +72,7 @@ type ChannelPatch struct {
 	Header           *string `json:"header"`
 	Purpose          *string `json:"purpose"`
 	GroupConstrained *bool   `json:"group_constrained"`
+	ReadOnly         *bool   `json:"read_only"`
 }
 
 type ChannelForExport struct {
@@ -259,6 +261,7 @@ func (o *Channel) PreSave() {
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
+
 }
 
 func (o *Channel) PreUpdate() {
@@ -290,6 +293,10 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 	if patch.Purpose != nil {
 		o.Purpose = *patch.Purpose
+	}
+
+	if patch.ReadOnly != nil {
+		o.ReadOnly = *patch.ReadOnly
 	}
 
 	if patch.GroupConstrained != nil {
