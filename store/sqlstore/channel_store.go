@@ -594,9 +594,19 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	}
 
 	transaction, err := s.GetMaster().Begin()
+
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
+
+	if s.UseCockroach() == true {
+		_, terr := transaction.Exec(`SET TRANSACTION PRIORITY LOW`)
+
+		if terr != nil {
+			return nil, errors.Wrap(terr, "set_priority_transaction")
+		}
+	}
+
 	defer finalizeTransaction(transaction)
 
 	directchannel.TeamId = ""

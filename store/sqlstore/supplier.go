@@ -375,6 +375,10 @@ func (ss *SqlSupplier) TotalMasterDbConnections() int {
 	return ss.GetMaster().Db.Stats().OpenConnections
 }
 
+func (ss *SqlSupplier) UseCockroach() bool {
+	return *ss.settings.UseCockroach
+}
+
 func (ss *SqlSupplier) TotalReadDbConnections() int {
 	if len(ss.settings.DataSourceReplicas) == 0 {
 		return 0
