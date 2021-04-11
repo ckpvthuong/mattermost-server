@@ -647,14 +647,14 @@ func createPost(team string, channel string, allUsers []string, createAt int64) 
 	}
 
 	reactions := []app.ReactionImportData{}
-	if rand.Intn(10) == 0 {
-		for {
-			reactions = append(reactions, randomReaction(allUsers, create_at))
-			if rand.Intn(3) == 0 {
-				break
-			}
-		}
-	}
+	// if rand.Intn(10) == 0 {
+	// 	for {
+	// 		reactions = append(reactions, randomReaction(allUsers, create_at))
+	// 		if rand.Intn(3) == 0 {
+	// 			break
+	// 		}
+	// 	}
+	// }
 
 	replies := []app.ReplyImportData{}
 	if rand.Intn(10) == 0 {
@@ -707,14 +707,14 @@ func createDirectPost(members []string, createAt int64) app.LineImportData {
 	}
 
 	reactions := []app.ReactionImportData{}
-	if rand.Intn(10) == 0 {
-		for {
-			reactions = append(reactions, randomReaction(members, create_at))
-			if rand.Intn(3) == 0 {
-				break
-			}
-		}
-	}
+	// if rand.Intn(10) == 0 {
+	// 	for {
+	// 		reactions = append(reactions, randomReaction(members, create_at))
+	// 		if rand.Intn(3) == 0 {
+	// 			break
+	// 		}
+	// 	}
+	// }
 
 	replies := []app.ReplyImportData{}
 	if rand.Intn(10) == 0 {
