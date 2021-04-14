@@ -48,7 +48,7 @@ func init() {
 	SampleDataCmd.Flags().Int("posts-per-direct-channel", 15, "The number of sample posts per direct message channel.")
 	SampleDataCmd.Flags().Int("group-channels", 15, "The number of sample group message channels.")
 	SampleDataCmd.Flags().Int("posts-per-group-channel", 20, "The number of sample posts per group message channel.")
-	SampleDataCmd.Flags().IntP("workers", "w", 2, "How many workers to run during the import.")
+	SampleDataCmd.Flags().IntP("workers", "w", 1, "How many workers to run during the import.")
 	SampleDataCmd.Flags().String("profile-images", "", "Optional. Path to folder with images to randomly pick as user profile image.")
 	SampleDataCmd.Flags().StringP("bulk", "b", "", "Optional. Path to write a JSONL bulk file instead of loading into the database.")
 	RootCmd.AddCommand(SampleDataCmd)
