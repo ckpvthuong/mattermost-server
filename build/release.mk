@@ -91,10 +91,14 @@ package:
 	sed -i'' -e 's|"ReplyToAddress": "test@example.com",|"ReplyToAddress": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPServer": "localhost",|"SMTPServer": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
-
+	
+	
+ifeq ($(NO_INCLUDE_CLIENT),true)
+else
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/client
 	cp -RL $(BUILD_WEBAPP_DIR)/dist/* $(DIST_PATH)/client
+endif
 
 	@#Download MMCTL
 	scripts/download_mmctl_release.sh "" $(DIST_PATH)/bin
@@ -127,73 +131,73 @@ endif
 
 	@# ----- PLATFORM SPECIFIC -----
 
-	@# Make osx package
-	@# Copy binary
-ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
-	cp $(GOBIN)/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-	cp $(GOBIN)/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-else
-	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
-	cp $(GOBIN)/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
-endif
-	MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/v5.30.0/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
-	@# Prepackage plugins
-	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		ARCH="osx-amd64"; \
-		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
-		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
-		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
-		if [ "$$HAS_ARCH" != "dist/plugin-darwin-amd64" ]; then \
-			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-darwin-amd64"; \
-			exit 1; \
-		fi; \
-		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
-		if [ $$? -ne 0 ]; then \
-			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
-			exit 1; \
-		fi; \
-	done
-	@# Package
-	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
-	@# Cleanup
-	rm -f $(DIST_PATH)/bin/mattermost
-	rm -f $(DIST_PATH)/bin/platform
-	rm -f $(DIST_PATH)/bin/mmctl
-	rm -f $(DIST_PATH)/prepackaged_plugins/*
+# 	@# Make osx package
+# 	@# Copy binary
+# ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
+# 	cp $(GOBIN)/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+# 	cp $(GOBIN)/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+# else
+# 	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
+# 	cp $(GOBIN)/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
+# endif
+# 	MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/v5.30.0/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
+# 	@# Prepackage plugins
+# 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+# 		ARCH="osx-amd64"; \
+# 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
+# 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+# 		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
+# 		if [ "$$HAS_ARCH" != "dist/plugin-darwin-amd64" ]; then \
+# 			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-darwin-amd64"; \
+# 			exit 1; \
+# 		fi; \
+# 		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
+# 		if [ $$? -ne 0 ]; then \
+# 			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
+# 			exit 1; \
+# 		fi; \
+# 	done
+# 	@# Package
+# 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
+# 	@# Cleanup
+# 	rm -f $(DIST_PATH)/bin/mattermost
+# 	rm -f $(DIST_PATH)/bin/platform
+# 	rm -f $(DIST_PATH)/bin/mmctl
+# 	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
-	@# Make windows package
-	@# Copy binary
-ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
-	cp $(GOBIN)/mattermost.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-	cp $(GOBIN)/platform.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-else
-	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH)/bin # from cross-compiled bin dir
-	cp $(GOBIN)/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
-endif
-	MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://releases.mattermost.com/mmctl/v5.30.0/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d $(DIST_PATH)/bin && rm $$MMCTL_FILE
-	@# Prepackage plugins
-	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		ARCH="windows-amd64"; \
-		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
-		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
-		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
-		if [ "$$HAS_ARCH" != "dist/plugin-windows-amd64.exe" ]; then \
-			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-windows-amd64.exe"; \
-			exit 1; \
-		fi; \
-		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
-		if [ $$? -ne 0 ]; then \
-			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
-			exit 1; \
-		fi; \
-	done
-	@# Package
-	cd $(DIST_ROOT) && zip -9 -r -q -l mattermost-$(BUILD_TYPE_NAME)-windows-amd64.zip mattermost && cd ..
-	@# Cleanup
-	rm -f $(DIST_PATH)/bin/mattermost.exe
-	rm -f $(DIST_PATH)/bin/platform.exe
-	rm -f $(DIST_PATH)/bin/mmctl.exe
-	rm -f $(DIST_PATH)/prepackaged_plugins/*
+# 	@# Make windows package
+# 	@# Copy binary
+# ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
+# 	cp $(GOBIN)/mattermost.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+# 	cp $(GOBIN)/platform.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+# else
+# 	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH)/bin # from cross-compiled bin dir
+# 	cp $(GOBIN)/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
+# endif
+# 	MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://releases.mattermost.com/mmctl/v5.30.0/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d $(DIST_PATH)/bin && rm $$MMCTL_FILE
+# 	@# Prepackage plugins
+# 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+# 		ARCH="windows-amd64"; \
+# 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
+# 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+# 		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
+# 		if [ "$$HAS_ARCH" != "dist/plugin-windows-amd64.exe" ]; then \
+# 			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-windows-amd64.exe"; \
+# 			exit 1; \
+# 		fi; \
+# 		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
+# 		if [ $$? -ne 0 ]; then \
+# 			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
+# 			exit 1; \
+# 		fi; \
+# 	done
+# 	@# Package
+# 	cd $(DIST_ROOT) && zip -9 -r -q -l mattermost-$(BUILD_TYPE_NAME)-windows-amd64.zip mattermost && cd ..
+# 	@# Cleanup
+# 	rm -f $(DIST_PATH)/bin/mattermost.exe
+# 	rm -f $(DIST_PATH)/bin/platform.exe
+# 	rm -f $(DIST_PATH)/bin/mmctl.exe
+# 	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
 	@# Make linux package
 	@# Copy binary
