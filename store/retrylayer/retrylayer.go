@@ -362,9 +362,15 @@ type RetryLayerWebhookStore struct {
 	Root *RetryLayer
 }
 
+type CockroachErr struct {
+	Code string
+}
+
 func isRepeatableError(err error) bool {
 	var pqErr *pq.Error
 	var mysqlErr *mysql.MySQLError
+	// var crErr *CockroachErr
+	// fmt.Println(err.Error())
 	switch {
 	case errors.As(errors.Cause(err), &pqErr):
 		if pqErr.Code == "40001" || pqErr.Code == "40P01" {

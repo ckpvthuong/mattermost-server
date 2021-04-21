@@ -6322,13 +6322,14 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		DisplayName: "Open Channel 3",
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN,
+		ReadOnly:    false,
 	}
 
 	_, execerr := s.GetMaster().ExecNoTimeout(`
 		INSERT INTO
-		    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+		    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose, ReadOnly)
 		VALUES
-		    (:Id, :DeleteAt, :TeamId, :DisplayName, :Name, :Header, :Purpose);
+		    (:Id, :DeleteAt, :TeamId, :DisplayName, :Name, :Header, :Purpose, :ReadOnly);
 	`, map[string]interface{}{
 		"Id":          o3.Id,
 		"DeleteAt":    o3.DeleteAt,
@@ -6337,6 +6338,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		"Name":        o3.Name,
 		"Header":      o3.Header,
 		"Purpose":     o3.Purpose,
+		"ReadOnly":    o3.ReadOnly,
 	})
 	require.Nil(t, execerr)
 
@@ -6344,9 +6346,9 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 
 	_, execerr = s.GetMaster().ExecNoTimeout(`
 		INSERT INTO
-		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId)
+		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, ReadOnly,LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId)
 		VALUES
-		    (:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId);
+		    (:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :ReadOnly, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId);
 	`, map[string]interface{}{
 		"Id":            o3.Id,
 		"CreateAt":      o3.CreateAt,
@@ -6362,6 +6364,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		"TotalMsgCount": o3.TotalMsgCount,
 		"ExtraUpdateAt": o3.ExtraUpdateAt,
 		"CreatorId":     o3.CreatorId,
+		"ReadOnly":      o3.ReadOnly,
 	})
 	require.Nil(t, execerr)
 

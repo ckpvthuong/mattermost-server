@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"strings"
 
 	"database/sql"
 
@@ -128,6 +129,11 @@ func postgreSQLDSNDatabase(dsn string) string {
 }
 
 func databaseSettings(driver, dataSource string) *model.SqlSettings {
+	dsn := getEnv("TEST_DATABASE_POSTGRESQL_DSN", defaultPostgresqlDSN)
+	useCockroach := false
+	if strings.Contains(dsn, "cockroach") {
+		useCockroach = true
+	}
 	settings := &model.SqlSettings{
 		DriverName:                  &driver,
 		DataSource:                  &dataSource,
@@ -139,6 +145,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		Trace:                       model.NewBool(false),
 		AtRestEncryptKey:            model.NewString(model.NewRandomString(32)),
 		QueryTimeout:                new(int),
+		UseCockroach:                &useCockroach,
 	}
 	*settings.MaxIdleConns = 10
 	*settings.ConnMaxLifetimeMilliseconds = 3600000
@@ -200,8 +207,14 @@ func MakeSqlSettings(driver string) *model.SqlSettings {
 			panic("failed to grant mmuser permission to " + dbName + ":" + err.Error())
 		}
 	case model.DATABASE_DRIVER_POSTGRES:
-		if err := execAsRoot(settings, "GRANT ALL PRIVILEGES ON DATABASE \""+dbName+"\" TO mmuser"); err != nil {
-			panic("failed to grant mmuser permission to " + dbName + ":" + err.Error())
+		if *settings.UseCockroach == true {
+			if err := execAsRoot(settings, "GRANT ALL ON DATABASE \""+dbName+"\" TO mmuser"); err != nil {
+				panic("failed to grant mmuser permission to " + dbName + ":" + err.Error())
+			}
+		} else {
+			if err := execAsRoot(settings, "GRANT ALL PRIVILEGES ON DATABASE \""+dbName+"\" TO mmuser"); err != nil {
+				panic("failed to grant mmuser permission to " + dbName + ":" + err.Error())
+			}
 		}
 	default:
 		panic("unsupported driver " + driver)

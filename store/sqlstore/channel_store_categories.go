@@ -291,6 +291,16 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 					SidebarChannels.UserId = :UserId
 					AND SidebarChannels.ChannelId IN ` + channelIdsKeys + `
 					AND SidebarCategories.TeamId = :TeamId`
+		} else if s.UseCockroach() == true {
+			deleteQuery = `
+				WITH SidebarCategories as (SELECT * FROM SidebarCategories WHERE TeamId = :TeamId)
+				DELETE FROM
+					SidebarChannels
+				WHERE
+					SidebarChannels.CategoryId IN (SELECT id FROM SidebarCategories)
+					AND SidebarChannels.UserId = :UserId
+					AND SidebarChannels.ChannelId IN ` + channelIdsKeys + `
+					`
 		} else {
 			deleteQuery = `
 				DELETE FROM
@@ -611,6 +621,15 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "begin_transaction")
 	}
+
+	if s.UseCockroach() == true {
+		_, terr := transaction.Exec(`SET TRANSACTION PRIORITY LOW`)
+
+		if terr != nil {
+			return nil, nil, errors.Wrap(terr, "set_priority_transaction")
+		}
+	}
+
 	defer finalizeTransaction(transaction)
 
 	updatedCategories := []*model.SidebarCategoryWithChannels{}

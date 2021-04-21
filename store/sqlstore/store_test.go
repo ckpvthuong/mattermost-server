@@ -98,7 +98,7 @@ func initStores() {
 			storeTypes = append(storeTypes, newStoreType("PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
 		}
 	} else {
-		storeTypes = append(storeTypes, newStoreType("MySQL", model.DATABASE_DRIVER_MYSQL),
+		storeTypes = append(storeTypes,
 			newStoreType("PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
 	}
 
