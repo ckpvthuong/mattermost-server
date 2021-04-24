@@ -2100,7 +2100,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 
 	query := `SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE Id IN ` + keys
 	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.UseCockroach() == true {
 		query = `WITH c AS ( ` + query + `),
 		updated AS (
 		UPDATE
@@ -2113,6 +2113,23 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		FROM c
 			WHERE cm.UserId = :UserId
 			AND c.Id=cm.ChannelId
+		RETURNING id
+	)
+		SELECT Id, LastPostAt FROM c`
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = `WITH c AS ( ` + query + `),
+		updated AS (
+		UPDATE
+			ChannelMembers cm
+		SET
+			MentionCount = 0,
+			MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
+			LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
+			LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
+		FROM c
+			WHERE cm.UserId = :UserId
+			AND c.Id=cm.ChannelId
+			
 	)
 		SELECT Id, LastPostAt FROM c`
 	}
