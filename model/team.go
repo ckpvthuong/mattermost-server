@@ -67,6 +67,10 @@ type TeamsWithCount struct {
 	TotalCount int64   `json:"total_count"`
 }
 
+type GetTeamsOptions struct {
+	MyCreated bool
+}
+
 func InvitesFromJson(data io.Reader) *Invites {
 	var o *Invites
 	json.NewDecoder(data).Decode(&o)

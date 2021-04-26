@@ -996,6 +996,15 @@ func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
+func (a *App) GetTeamsForUserWithOptions(userId string, options model.GetTeamsOptions) ([]*model.Team, *model.AppError) {
+	teams, err := a.Srv().Store.Team().GetTeamsByUserIdWithOptions(userId, options)
+	if err != nil {
+		return nil, model.NewAppError("GetTeamsForUserWithOptions", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return teams, nil
+}
+
 func (a *App) GetTeamsAdminForUser(userId string) ([]*model.Team, *model.AppError) {
 	teams, err := a.Srv().Store.Team().GetTeamsAdministeredByUserId(userId)
 	if err != nil {

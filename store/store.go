@@ -89,6 +89,7 @@ type TeamStore interface {
 	GetAllTeamListing() ([]*model.Team, error)
 	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error)
 	GetTeamsByUserId(userId string) ([]*model.Team, error)
+	GetTeamsByUserIdWithOptions(userId string, options model.GetTeamsOptions) ([]*model.Team, error)
 	GetTeamsAdministeredByUserId(userId string) ([]*model.Team, error)
 	GetByInviteId(inviteId string) (*model.Team, error)
 	PermanentDelete(teamId string) error

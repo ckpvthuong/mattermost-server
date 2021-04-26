@@ -608,6 +608,26 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	return teams, nil
 }
 
+// GetTeamsByUserId returns from the database all teams that userId belongs to and created.
+func (s SqlTeamStore) GetTeamsByUserIdWithOptions(userId string, options model.GetTeamsOptions) ([]*model.Team, error) {
+	var teams []*model.Team
+	query, args, err := s.teamsQuery.
+		Join("TeamMembers ON TeamMembers.TeamId = Teams.Id").
+		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0,
+			"Teams.DeleteAt": 0,
+		}).ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "team_tosql")
+	}
+
+	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find Teams")
+	}
+
+	return teams, nil
+}
+
 // GetTeamsAdministedByUserId return all teams that administered by an user.
 func (s SqlTeamStore) GetTeamsAdministeredByUserId(userId string) ([]*model.Team, error) {
 	var teams []*model.Team

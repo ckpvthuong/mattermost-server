@@ -389,6 +389,7 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
+
 	if c.Err != nil {
 		return
 	}
@@ -398,7 +399,18 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teams, err := c.App.GetTeamsForUser(c.Params.UserId)
+	var teams []*model.Team
+	var err *model.AppError
+
+	if c.Params.MyCreated {
+		options := model.GetTeamsOptions{
+			MyCreated: true,
+		}
+		teams, err = c.App.GetTeamsForUserWithOptions(c.Params.UserId, options)
+	} else {
+		teams, err = c.App.GetTeamsForUser(c.Params.UserId)
+	}
+
 	if err != nil {
 		c.Err = err
 		return
