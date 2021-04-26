@@ -6457,6 +6457,22 @@ func (s *TimerLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, er
 	return result, err
 }
 
+func (s *TimerLayerTeamStore) GetTeamsByUserIdWithOptions(userId string, options model.GetTeamsOptions) ([]*model.Team, error) {
+	start := timemodule.Now()
+
+	result, err := s.TeamStore.GetTeamsByUserIdWithOptions(userId, options)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetTeamsByUserIdWithOptions", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
 	start := timemodule.Now()
 

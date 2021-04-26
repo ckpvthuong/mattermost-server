@@ -394,15 +394,15 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS)
-		return
-	}
+	// if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS) {
+	// 	c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS)
+	// 	return
+	// }
 
 	var teams []*model.Team
 	var err *model.AppError
 
-	if c.Params.MyCreated {
+	if c.Params.Created {
 		options := model.GetTeamsOptions{
 			MyCreated: true,
 		}

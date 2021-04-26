@@ -8397,6 +8397,28 @@ func (a *OpenTracingAppLayer) GetTeamsForUser(userId string) ([]*model.Team, *mo
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetTeamsForUserWithOptions(userId string, options model.GetTeamsOptions) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamsForUserWithOptions")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetTeamsForUserWithOptions(userId, options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamsUnreadForUser")

@@ -623,6 +623,29 @@ func (_m *TeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	return r0, r1
 }
 
+// GetTeamsByUserIdWithOptions provides a mock function with given fields: userId, options
+func (_m *TeamStore) GetTeamsByUserIdWithOptions(userId string, options model.GetTeamsOptions) ([]*model.Team, error) {
+	ret := _m.Called(userId, options)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(string, model.GetTeamsOptions) []*model.Team); ok {
+		r0 = rf(userId, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, model.GetTeamsOptions) error); ok {
+		r1 = rf(userId, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTeamsForUser provides a mock function with given fields: ctx, userId
 func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
 	ret := _m.Called(ctx, userId)

@@ -611,11 +611,23 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 // GetTeamsByUserId returns from the database all teams that userId belongs to and created.
 func (s SqlTeamStore) GetTeamsByUserIdWithOptions(userId string, options model.GetTeamsOptions) ([]*model.Team, error) {
 	var teams []*model.Team
+
 	query, args, err := s.teamsQuery.
 		Join("TeamMembers ON TeamMembers.TeamId = Teams.Id").
 		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0,
 			"Teams.DeleteAt": 0,
 		}).ToSql()
+
+	if options.MyCreated {
+		user, _ := s.SqlStore.User().Get(userId)
+		query, args, err = s.teamsQuery.
+			Join("TeamMembers ON TeamMembers.TeamId = Teams.Id").
+			Join("Users ON Users.Email = Teams.Email").
+			Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0,
+				"Teams.DeleteAt": 0,
+				"Teams.Email":    user.Email,
+			}).ToSql()
+	}
 
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")

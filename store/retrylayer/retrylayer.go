@@ -362,15 +362,9 @@ type RetryLayerWebhookStore struct {
 	Root *RetryLayer
 }
 
-type CockroachErr struct {
-	Code string
-}
-
 func isRepeatableError(err error) bool {
 	var pqErr *pq.Error
 	var mysqlErr *mysql.MySQLError
-	// var crErr *CockroachErr
-	// fmt.Println(err.Error())
 	switch {
 	case errors.As(errors.Cause(err), &pqErr):
 		if pqErr.Code == "40001" || pqErr.Code == "40P01" {
@@ -7743,6 +7737,26 @@ func (s *RetryLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, er
 	tries := 0
 	for {
 		result, err := s.TeamStore.GetTeamsByUserId(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetTeamsByUserIdWithOptions(userId string, options model.GetTeamsOptions) ([]*model.Team, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetTeamsByUserIdWithOptions(userId, options)
 		if err == nil {
 			return result, nil
 		}

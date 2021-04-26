@@ -82,7 +82,7 @@ type Params struct {
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
-	MyCreated                 bool
+	Created                   bool
 
 	// Cloud
 	InvoiceId string
@@ -326,8 +326,8 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.IncludeMemberCount = val
 	}
 
-	if val, err := strconv.ParseBool(query.Get("my_created")); err == nil {
-		params.MyCreated = val
+	if val, err := strconv.ParseBool(query.Get("created")); err == nil {
+		params.Created = val
 	}
 
 	params.NotAssociatedToGroup = query.Get("not_associated_to_group")
