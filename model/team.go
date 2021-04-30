@@ -279,7 +279,7 @@ func CleanTeamName(s string) string {
 }
 
 func (o *Team) Sanitize() {
-	o.Email = ""
+	//o.Email = ""
 	o.InviteId = ""
 }
 
