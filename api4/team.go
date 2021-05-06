@@ -1053,6 +1053,8 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		props.AllowOpenInvite = model.NewBool(true)
 		props.GroupConstrained = nil
 		props.IncludeGroupConstrained = nil
+		// props.IsMember = model.NewBool(false)
+		// props.UserId = c.App.Session().UserId
 		teams, totalCount, err = c.App.SearchAllTeams(props)
 	} else {
 		teams = []*model.Team{}

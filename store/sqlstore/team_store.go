@@ -399,8 +399,10 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 	// Don't order or limit if getting count
 	if !countQuery {
 		query = query.OrderBy("t.DisplayName")
-
 		if opts.IsPaginated() {
+			if opts.IsMember != nil {
+				query = query.Join("TeamMembers ON TeamMembers.TeamId = Teams.Id")
+			}
 			query = query.Limit(uint64(*opts.PerPage)).Offset(uint64(*opts.Page * *opts.PerPage))
 		}
 	}
@@ -415,6 +417,10 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 		}
 
 		query = query.Where(fmt.Sprintf("(Name %[1]s ? OR DisplayName %[1]s ?)", operatorKeyword), term, term)
+		if opts.IsMember != nil {
+			query = query.Where(sq.NotEq{"TeamMembers.UserId": opts.UserId, "Teams.DeleteAt": 0})
+		}
+
 	}
 
 	var teamFilters sq.Sqlizer

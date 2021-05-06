@@ -13,6 +13,8 @@ type TeamSearch struct {
 	Page                    *int   `json:"page,omitempty"`
 	PerPage                 *int   `json:"per_page,omitempty"`
 	AllowOpenInvite         *bool  `json:"allow_open_invite,omitempty"`
+	IsMember                *bool  `json:"isMember,omitempty"`
+	UserId                  string `json:"UserId,omitempty"`
 	GroupConstrained        *bool  `json:"group_constrained,omitempty"`
 	IncludeGroupConstrained *bool  `json:"include_group_constrained,omitempty"`
 }
