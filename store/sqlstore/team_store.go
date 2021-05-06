@@ -400,9 +400,6 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 	if !countQuery {
 		query = query.OrderBy("t.DisplayName")
 		if opts.IsPaginated() {
-			if opts.IsMember != nil {
-				query = query.Join("TeamMembers ON TeamMembers.TeamId = Teams.Id")
-			}
 			query = query.Limit(uint64(*opts.PerPage)).Offset(uint64(*opts.Page * *opts.PerPage))
 		}
 	}
@@ -417,10 +414,6 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 		}
 
 		query = query.Where(fmt.Sprintf("(Name %[1]s ? OR DisplayName %[1]s ?)", operatorKeyword), term, term)
-		if opts.IsMember != nil {
-			query = query.Where(sq.NotEq{"TeamMembers.UserId": opts.UserId, "Teams.DeleteAt": 0})
-		}
-
 	}
 
 	var teamFilters sq.Sqlizer
@@ -462,8 +455,14 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 		}
 	}
 
+	//var memberFilters sq.Sqlizer
 	query = query.Where(teamFilters)
 
+	if opts.IsMember != nil {
+		query = query.Where(fmt.Sprintf("t.Id NOT IN ( SELECT TeamId from TeamMembers where TeamMembers.UserId = '%s' AND TeamMembers.DeleteAt = 0 )", opts.UserId))
+	}
+	query = query.Where("t.DeleteAt = 0")
+	// fmt.Println(query)
 	return query
 }
 
@@ -623,6 +622,8 @@ func (s SqlTeamStore) GetTeamsByUserIdWithOptions(userId string, options model.G
 		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0,
 			"Teams.DeleteAt": 0,
 		}).ToSql()
+
+	// fmt.Println(query)
 
 	if options.MyCreated {
 		user, _ := s.SqlStore.User().Get(userId)
