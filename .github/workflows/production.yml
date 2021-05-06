@@ -50,6 +50,7 @@ jobs:
         port: ${{ secrets.SERVER_PORT }}
         script: |
           cd thuong/mattermost-server
+          mkdir plugins
           ln -nfs ../mattermost-webapp/dist client
           cd ..
           nohup ./mattermost-server/bin/mattermost --config=config.prod.json > nohup.out 2> nohup.err < /dev/null &
