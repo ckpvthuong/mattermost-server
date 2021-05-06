@@ -1046,11 +1046,14 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		teams, err = c.App.SearchPrivateTeams(props.Term)
 	} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		if props.Page != nil || props.PerPage != nil {
-			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
-			return
-		}
-		teams, err = c.App.SearchPublicTeams(props.Term)
+		// if props.Page != nil || props.PerPage != nil {
+		// 	c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
+		// 	return
+		// }
+		props.AllowOpenInvite = model.NewBool(true)
+		props.GroupConstrained = nil
+		props.IncludeGroupConstrained = nil
+		teams, totalCount, err = c.App.SearchAllTeams(props)
 	} else {
 		teams = []*model.Team{}
 	}

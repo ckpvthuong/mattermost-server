@@ -112,3 +112,4 @@ __debug_bin
 report.xml
 go.*.orig
 config.override.mk
+config/dg.json
