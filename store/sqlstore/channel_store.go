@@ -2883,15 +2883,17 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 }
 
 func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) (*model.ChannelList, error) {
-	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName")
 	if likeTerm == "" {
 		// If the likeTerm is empty after preparing, then don't bother searching.
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
 		parameters["LikeTerm"] = likeTerm
-		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+		_, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName")
 		parameters["FulltextTerm"] = fulltextTerm
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
+		//searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+")", 1)
+		fmt.Println("===" + searchQuery)
 	}
 
 	var channels model.ChannelList
