@@ -291,7 +291,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 					SidebarChannels.UserId = :UserId
 					AND SidebarChannels.ChannelId IN ` + channelIdsKeys + `
 					AND SidebarCategories.TeamId = :TeamId`
-		} else if s.UseCockroach() == true {
+		} else if s.UseCockroach() {
 			deleteQuery = `
 				WITH SidebarCategories as (SELECT * FROM SidebarCategories WHERE TeamId = :TeamId)
 				DELETE FROM
@@ -622,7 +622,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 		return nil, nil, errors.Wrap(err, "begin_transaction")
 	}
 
-	if s.UseCockroach() == true {
+	if s.UseCockroach() {
 		_, terr := transaction.Exec(`SET TRANSACTION PRIORITY LOW`)
 
 		if terr != nil {

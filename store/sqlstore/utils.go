@@ -11,6 +11,9 @@ import (
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 )
 
 var escapeLikeSearchChar = []string{
@@ -87,4 +90,14 @@ func isQuotedWord(s string) bool {
 	}
 
 	return s[0] == '"' && s[len(s)-1] == '"'
+}
+
+// remove accents
+func removeAccents(str string) string {
+	var normalizer = transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	s, _, err := transform.String(normalizer, str)
+	if err != nil {
+		return str
+	}
+	return strings.ToLower(s)
 }

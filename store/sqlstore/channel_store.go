@@ -599,7 +599,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 
-	if s.UseCockroach() == true {
+	if s.UseCockroach() {
 		_, terr := transaction.Exec(`SET TRANSACTION PRIORITY LOW`)
 
 		if terr != nil {
@@ -672,7 +672,7 @@ func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, error) 
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 
-	if s.UseCockroach() == true {
+	if s.UseCockroach() {
 		_, terr := transaction.Exec(`SET TRANSACTION PRIORITY LOW`)
 
 		if terr != nil {
@@ -1414,7 +1414,7 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 
-	if s.UseCockroach() == true {
+	if s.UseCockroach() {
 		_, terr := transaction.Exec(`SET TRANSACTION PRIORITY LOW`)
 
 		if terr != nil {
@@ -2100,7 +2100,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 
 	query := `SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE Id IN ` + keys
 	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
-	if s.UseCockroach() == true {
+	if s.UseCockroach() {
 		query = `WITH c AS ( ` + query + `),
 		updated AS (
 		UPDATE
@@ -2867,7 +2867,6 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 
 		fulltextTerm = strings.Join(splitTerm, " ")
 		fulltextClause = fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', :FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
-		fmt.Println(fulltextClause)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {

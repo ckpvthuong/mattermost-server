@@ -1317,7 +1317,15 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}
 
-		searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
+		var searchClause string
+		if s.SqlStore.UseCockroach() {
+			str := "%" + terms + "%"
+			noAccentsStr := "%" + removeAccents(terms) + "%"
+			searchClause = fmt.Sprintf("AND ( q2.%s LIKE '%s' OR q2.%s LIKE '%s' )", searchType, str, searchType, noAccentsStr)
+		} else {
+			searchClause = fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
+		}
+
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if searchType == "Message" {
