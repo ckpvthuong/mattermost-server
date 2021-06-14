@@ -1762,10 +1762,10 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS)
-		return
-	}
+	// if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS) {
+	// 	c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS)
+	// 	return
+	// }
 
 	channel, err := c.App.GetChannel(c.Params.ChannelId)
 	if err != nil {
@@ -1802,9 +1802,11 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 	auditRec := c.MakeAuditRecord("patchChannelModerations", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS)
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_MANAGE_CHANNEL_ROLES) {
+	
+		c.SetPermissionError(model.PERMISSION_MANAGE_CHANNEL_ROLES)
 		return
+	
 	}
 
 	channel, err := c.App.GetChannel(c.Params.ChannelId)
